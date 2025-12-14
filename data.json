@@ -3,7 +3,7 @@
     "id": 1,
     "title": "學霸筆記",
     "category": "筆記設計",
-    "image": "圖片網址.jpg",
+    "image": "./images/截圖 2025-12-14 中午12.17.33.jpg",
     "description": "生成圖文筆記",
     "prompt": "你的 Prompt...",
     "author": "Allan"

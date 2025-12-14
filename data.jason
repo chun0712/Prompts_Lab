@@ -1,11 +1,11 @@
 [
   {
     "id": 1,
-    "title": "範例標題",
-    "category": "創意設計",
+    "title": "學霸筆記",
+    "category": "筆記設計",
     "image": "圖片網址.jpg",
-    "description": "簡介...",
+    "description": "生成圖文筆記",
     "prompt": "你的 Prompt...",
-    "author": "你的名字"
+    "author": "Allan"
   }
 ]

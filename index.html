@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Prompt Library | 靈感資料庫</title>
+    <title>Prompt Vault | 專業提示詞庫</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue.js 3 -->
@@ -11,32 +11,36 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- 設定新風格：純黑極簡 (Pure Black) -->
+    <!-- 設定新風格：專業暗色 + 金黃 + 綠色按鈕 -->
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        // 純黑風格色票
-                        pure: {
-                            bg: '#000000',      // 純黑背景
-                            card: '#0a0a0a',    // 極深灰卡片
-                            border: '#262626',  // 微亮邊框
-                            hover: '#171717',   // 懸停顏色
-                            accent: '#38bdf8',  // 重點色 (天藍，保持科技感)
+                        pro: {
+                            bg: '#0f1117',      // 專業深灰底 (非純黑)
+                            card: '#1e212b',    // 卡片背景
+                            border: '#2d3342',  // 邊框色
+                            gold: '#fbbf24',    // 金黃色 (重點文字/圖標)
+                            goldHover: '#f59e0b',
+                            green: '#238636',   // GitHub 綠色 (主要按鈕)
+                            greenHover: '#2ea043',
+                            red: '#da3633',     // 刪除紅色
+                            text: '#e6edf3',    // 亮白文字
+                            subtext: '#8b949e'  // 次要文字
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'Microsoft JhengHei', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+                        sans: ['Inter', 'Microsoft JhengHei', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Menlo', 'monospace'],
                     },
                     animation: {
-                        'zoom-in': 'zoomIn 0.2s ease-out',
+                        'modal-in': 'modalIn 0.2s ease-out',
                     },
                     keyframes: {
-                        zoomIn: {
-                            '0%': { opacity: '0', transform: 'scale(0.98)' },
+                        modalIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
                             '100%': { opacity: '1', transform: 'scale(1)' },
                         }
                     }
@@ -45,71 +49,77 @@
         }
     </script>
     <style>
-        body { background-color: #000000; color: #e5e5e5; }
-        /* 隱藏捲軸但保留功能 */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #000000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        body { background-color: #0f1117; color: #e6edf3; }
+        /* 捲軸美化 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f1117; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+        /* 讓圖片永遠保持明亮，不變暗 */
+        .card-image {
+            transition: transform 0.4s ease;
+        }
     </style>
 </head>
-<body class="bg-pure-bg text-gray-300 font-sans min-h-screen flex flex-col selection:bg-pure-accent selection:text-black">
+<body class="bg-pro-bg text-pro-text font-sans min-h-screen flex flex-col">
 
     <div id="app" class="flex flex-col min-h-screen">
 
         <!-- Header -->
-        <header class="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-pure-border py-4 px-6">
+        <header class="sticky top-0 z-40 bg-pro-bg/95 backdrop-blur border-b border-pro-border py-4 px-6 shadow-md">
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                 <!-- Logo -->
-                <div class="flex items-center gap-3 cursor-pointer" @click="resetSearch">
-                    <div class="w-8 h-8 rounded bg-pure-accent flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.3)]">
-                        <i class="fa-solid fa-terminal text-black text-sm"></i>
+                <div class="flex items-center gap-3 cursor-pointer group" @click="resetSearch">
+                    <div class="w-10 h-10 rounded-lg bg-pro-gold flex items-center justify-center shadow-lg shadow-yellow-500/20 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-layer-group text-black text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-lg font-bold tracking-wider text-white">PROMPT<span class="text-pure-accent">VAULT</span></h1>
+                        <h1 class="text-xl font-bold tracking-wide text-white">PROMPT <span class="text-pro-gold">VAULT</span></h1>
+                        <p class="text-xs text-pro-subtext">專業靈感資料庫</p>
                     </div>
                 </div>
 
                 <!-- Search -->
                 <div class="relative w-full md:w-1/3">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-                        <i class="fa-solid fa-search"></i>
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-pro-subtext">
+                        <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
                     <input
                         type="text"
                         v-model="searchQuery"
-                        placeholder="搜尋資料庫..."
-                        class="w-full bg-pure-card border border-pure-border rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-pure-accent focus:ring-1 focus:ring-pure-accent transition-all placeholder-gray-700 text-white"
+                        placeholder="搜尋標題、內容或指令..."
+                        class="w-full bg-[#0d1117] border border-pro-border rounded-md py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-pro-gold focus:ring-1 focus:ring-pro-gold transition-all text-white placeholder-gray-600"
                     >
                 </div>
 
-                <!-- GitHub Database Button (Global) -->
-                <a :href="githubJsonEditUrl" target="_blank" class="hidden md:flex items-center gap-2 px-4 py-2 rounded border border-pure-border hover:bg-pure-hover hover:border-gray-500 transition-all text-xs font-mono text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-database"></i>
+                <!-- GitHub Manage Button -->
+                <a :href="githubJsonEditUrl" target="_blank" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-md bg-[#21262d] border border-pro-border hover:border-pro-subtext text-sm font-medium transition-all text-pro-text hover:bg-[#30363d]">
+                    <i class="fa-solid fa-code-branch"></i>
                     <span>管理資料庫</span>
                 </a>
             </div>
         </header>
 
         <!-- Category Nav -->
-        <nav class="py-6 px-6 max-w-7xl mx-auto w-full">
-            <div class="flex flex-wrap gap-2 justify-center md:justify-start">
+        <nav class="py-8 px-6 max-w-7xl mx-auto w-full">
+            <div class="flex flex-wrap gap-3 justify-center md:justify-start">
                 <button
                     @click="currentCategory = 'All'"
-                    :class="['px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 border',
+                    :class="['px-5 py-2 rounded-md text-sm font-bold transition-all border',
                     currentCategory === 'All'
-                        ? 'bg-pure-accent text-black border-pure-accent font-bold'
-                        : 'bg-transparent border-pure-border text-gray-500 hover:text-gray-300 hover:border-gray-500']">
-                    全部
+                        ? 'bg-pro-gold text-black border-pro-gold shadow-[0_0_15px_rgba(251,191,36,0.2)]'
+                        : 'bg-transparent border-pro-border text-pro-subtext hover:text-white hover:border-gray-500']">
+                    全部顯示
                 </button>
                 <button
                     v-for="cat in uniqueCategories"
                     :key="cat"
                     @click="currentCategory = cat"
-                    :class="['px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 border',
+                    :class="['px-5 py-2 rounded-md text-sm font-bold transition-all border',
                     currentCategory === cat
-                        ? 'bg-pure-accent text-black border-pure-accent font-bold'
-                        : 'bg-transparent border-pure-border text-gray-500 hover:text-gray-300 hover:border-gray-500']">
+                        ? 'bg-pro-gold text-black border-pro-gold shadow-[0_0_15px_rgba(251,191,36,0.2)]'
+                        : 'bg-transparent border-pro-border text-pro-subtext hover:text-white hover:border-gray-500']">
                     {{ cat }}
                 </button>
             </div>
@@ -118,50 +128,50 @@
         <!-- Main Grid -->
         <main class="flex-grow px-6 pb-10 max-w-7xl mx-auto w-full">
 
-            <!-- Loading State -->
+            <!-- Loading -->
             <div v-if="isLoading" class="text-center py-20">
-                <i class="fa-solid fa-circle-notch fa-spin text-pure-accent text-3xl"></i>
-                <p class="mt-4 text-gray-600 text-sm">正在載入資料庫...</p>
+                <i class="fa-solid fa-circle-notch fa-spin text-pro-gold text-4xl"></i>
+                <p class="mt-4 text-pro-subtext">資料庫連線中...</p>
             </div>
 
-            <!-- Error State -->
-            <div v-else-if="error" class="text-center py-20 text-red-400">
+            <!-- Error -->
+            <div v-else-if="error" class="text-center py-20 text-red-400 bg-red-900/10 border border-red-900 rounded-lg">
                 <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
-                <p>{{ error }}</p>
-                <p class="text-xs text-gray-600 mt-2">請確認 GitHub 檔案名稱是否為 data.json</p>
+                <p class="font-bold">讀取失敗</p>
+                <p class="text-sm mt-1">{{ error }}</p>
             </div>
 
             <!-- Content Grid -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
+                <!-- 卡片設計：永遠高亮，只有邊框會變色 -->
                 <div v-for="item in paginatedItems" :key="item.id"
-                     class="group bg-pure-card border border-pure-border rounded-xl overflow-hidden hover:border-pure-accent hover:shadow-[0_0_20px_rgba(56,189,248,0.1)] transition-all duration-300 flex flex-col cursor-pointer"
+                     class="group bg-pro-card border border-pro-border rounded-lg overflow-hidden hover:border-pro-gold transition-colors duration-300 flex flex-col cursor-pointer shadow-lg"
                      @click="openModal(item)">
 
-                    <!-- Thumbnail -->
-                    <div class="relative aspect-video overflow-hidden bg-[#050505]">
-                        <img :src="item.image" :alt="item.title" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 group-hover:opacity-100">
-                        <div class="absolute top-3 right-3">
-                            <span class="bg-black/80 backdrop-blur text-[10px] text-pure-accent px-2 py-1 rounded border border-pure-border">
+                    <!-- 圖片區：無暗角，永遠清晰 -->
+                    <div class="relative aspect-video overflow-hidden bg-black border-b border-pro-border">
+                        <img :src="item.image" :alt="item.title" loading="lazy" class="w-full h-full object-cover card-image group-hover:scale-105">
+                        <div class="absolute top-2 right-2">
+                            <span class="bg-black/70 backdrop-blur text-xs font-bold text-pro-gold px-2 py-1 rounded border border-pro-border shadow-sm">
                                 {{ item.category }}
                             </span>
                         </div>
                     </div>
 
-                    <!-- Content -->
-                    <div class="p-4 flex flex-col flex-grow">
-                        <h3 class="text-base font-bold text-white mb-2 group-hover:text-pure-accent transition-colors line-clamp-1">
+                    <!-- 內容區 -->
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h3 class="text-lg font-bold text-white mb-2 group-hover:text-pro-gold transition-colors">
                             {{ item.title }}
                         </h3>
-                        <p class="text-xs text-gray-500 line-clamp-2 mb-4 flex-grow leading-5">
+                        <p class="text-sm text-pro-subtext line-clamp-2 mb-4 leading-relaxed">
                             {{ item.description }}
                         </p>
 
-                        <div class="mt-auto flex items-center justify-between pt-3 border-t border-pure-border">
-                            <span class="text-[10px] text-gray-600 font-mono">
-                                #{{ item.id }}
-                            </span>
-                            <button @click.stop="copyPrompt(item.prompt)" class="text-[10px] bg-pure-hover hover:bg-white hover:text-black text-gray-400 px-3 py-1 rounded border border-pure-border transition-all">
+                        <div class="mt-auto pt-4 border-t border-pro-border flex items-center justify-between">
+                            <span class="text-xs text-pro-subtext font-mono">ID: {{ item.id }}</span>
+                            <!-- 小複製按鈕 -->
+                            <button @click.stop="copyPrompt(item.prompt)" class="text-xs bg-[#21262d] hover:bg-pro-gold hover:text-black text-gray-300 px-3 py-1.5 rounded border border-pro-border hover:border-pro-gold transition-all font-bold">
                                 複製
                             </button>
                         </div>
@@ -170,88 +180,103 @@
             </div>
 
             <!-- Empty State -->
-            <div v-if="!isLoading && !error && filteredItems.length === 0" class="flex flex-col items-center justify-center py-20 text-gray-600">
-                <i class="fa-solid fa-ghost text-4xl mb-4 opacity-50"></i>
-                <p class="text-sm">沒有找到相關內容</p>
+            <div v-if="!isLoading && !error && filteredItems.length === 0" class="flex flex-col items-center justify-center py-20 text-pro-subtext">
+                <i class="fa-solid fa-folder-open text-5xl mb-4 opacity-50"></i>
+                <p>找不到相關資料</p>
             </div>
         </main>
 
         <!-- Pagination -->
-        <footer class="py-8 border-t border-pure-border bg-black mt-auto">
+        <footer class="py-6 border-t border-pro-border bg-pro-card mt-auto">
             <div class="flex justify-center items-center gap-4">
                 <button @click="currentPage--" :disabled="currentPage === 1"
-                    class="w-8 h-8 rounded flex items-center justify-center bg-pure-card border border-pure-border text-gray-400 hover:bg-white hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition">
-                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                    class="px-4 py-2 rounded bg-[#0d1117] border border-pro-border hover:border-gray-500 text-sm disabled:opacity-30 transition">
+                    上一頁
                 </button>
-                <span class="text-xs text-gray-500 font-mono">Page {{ currentPage }}</span>
+                <span class="text-sm text-pro-subtext font-mono">Page <span class="text-pro-gold">{{ currentPage }}</span></span>
                 <button @click="currentPage++" :disabled="currentPage === totalPages"
-                    class="w-8 h-8 rounded flex items-center justify-center bg-pure-card border border-pure-border text-gray-400 hover:bg-white hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition">
-                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                    class="px-4 py-2 rounded bg-[#0d1117] border border-pro-border hover:border-gray-500 text-sm disabled:opacity-30 transition">
+                    下一頁
                 </button>
             </div>
         </footer>
 
         <!-- Detail Modal -->
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="closeModal">
-            <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity"></div>
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"></div>
 
-            <div class="relative bg-black border border-pure-border w-full max-w-6xl rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-zoom-in ring-1 ring-pure-border">
+            <div class="relative bg-pro-card border border-pro-border w-full max-w-6xl rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-modal-in">
 
-                <button @click="closeModal" class="absolute top-4 right-4 z-20 bg-black hover:bg-red-900 text-white w-8 h-8 rounded-full border border-pure-border flex items-center justify-center transition">
+                <!-- Close Button -->
+                <button @click="closeModal" class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition backdrop-blur">
                     <i class="fa-solid fa-times"></i>
                 </button>
 
-                <!-- Left: Image (Lightbox Trigger) -->
-                <div class="w-full md:w-1/2 bg-[#050505] flex items-center justify-center relative group cursor-zoom-in border-r border-pure-border" @click="openLightbox">
-                    <img :src="selectedItem.image" class="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition duration-300">
+                <!-- Left: Image -->
+                <div class="w-full md:w-1/2 bg-black flex items-center justify-center border-r border-pro-border relative group cursor-zoom-in" @click="openLightbox">
+                    <img :src="selectedItem.image" class="max-w-full max-h-[50vh] md:max-h-full object-contain">
+                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition">點擊放大</div>
                 </div>
 
-                <!-- Right: Content -->
-                <div class="w-full md:w-1/2 p-8 overflow-y-auto bg-black flex flex-col">
-                    <div class="mb-8">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="text-xs font-bold text-pure-accent border border-pure-accent px-2 py-0.5 rounded">
+                <!-- Right: Content & Actions -->
+                <div class="w-full md:w-1/2 p-8 overflow-y-auto bg-pro-card flex flex-col">
+
+                    <!-- Header Info -->
+                    <div class="mb-6 border-b border-pro-border pb-6">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-xs font-bold text-black bg-pro-gold px-2 py-1 rounded">
                                 {{ selectedItem.category }}
                             </span>
-
-                            <!-- ★★★ 這裡就是你要的新增功能：編輯按鈕 ★★★ -->
-                            <!-- 如果 JSON 裡有 editUrl，會連去那裡；如果沒有，會連去預設的 JSON 編輯頁 -->
-                            <a :href="getEditUrl(selectedItem)" target="_blank"
-                               class="ml-auto text-xs text-gray-500 hover:text-white flex items-center gap-1 transition-colors border-b border-transparent hover:border-white pb-0.5">
-                                <i class="fa-solid fa-pen-to-square"></i> 編輯此項目
-                            </a>
+                            <span class="text-xs text-pro-subtext">{{ selectedItem.date || 'No Date' }}</span>
                         </div>
-
-                        <h2 class="text-2xl font-bold text-white mb-4">{{ selectedItem.title }}</h2>
-                        <p class="text-gray-400 text-sm leading-relaxed">{{ selectedItem.description }}</p>
+                        <h2 class="text-3xl font-bold text-white mb-4">{{ selectedItem.title }}</h2>
+                        <p class="text-pro-subtext leading-7">{{ selectedItem.description }}</p>
                     </div>
 
-                    <div class="flex-grow bg-[#0a0a0a] border border-pure-border rounded-lg p-5 relative group">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Prompt</h4>
-                            <button @click="copyPrompt(selectedItem.prompt)" class="text-xs bg-pure-accent text-black font-bold px-3 py-1.5 rounded hover:bg-white transition shadow-[0_0_10px_rgba(56,189,248,0.3)]">
-                                複製指令
+                    <!-- Prompt Area -->
+                    <div class="flex-grow mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs text-pro-gold font-bold uppercase tracking-widest">
+                                <i class="fa-solid fa-terminal mr-1"></i> Prompt 指令
+                            </h4>
+                            <button @click="copyPrompt(selectedItem.prompt)" class="text-xs text-white bg-[#21262d] hover:bg-white hover:text-black border border-pro-border px-3 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i>
                             </button>
                         </div>
-                        <p class="text-gray-300 font-mono text-sm whitespace-pre-wrap leading-6 select-text">
+                        <div class="bg-[#0d1117] border border-pro-border rounded-lg p-4 font-mono text-sm text-gray-300 leading-6 whitespace-pre-wrap select-text h-48 overflow-y-auto custom-scroll">
                             {{ selectedItem.prompt }}
-                        </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons (編輯與刪除) -->
+                    <div class="grid grid-cols-2 gap-4 mt-auto">
+                        <!-- 編輯按鈕 (綠色) -->
+                        <a :href="getEditUrl(selectedItem)" target="_blank"
+                           class="flex items-center justify-center gap-2 bg-pro-green hover:bg-pro-greenHover text-white py-3 rounded-lg font-bold transition shadow-lg hover:shadow-green-900/30">
+                            <i class="fa-regular fa-pen-to-square"></i> 編輯資料
+                        </a>
+
+                        <!-- 刪除按鈕 (紅色) - 觸發邏輯 -->
+                        <button @click="deleteItem(selectedItem)"
+                                class="flex items-center justify-center gap-2 bg-pro-card border border-pro-red text-pro-red hover:bg-pro-red hover:text-white py-3 rounded-lg font-bold transition">
+                            <i class="fa-regular fa-trash-can"></i> 刪除資料
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Fullscreen Lightbox -->
-        <div v-if="showLightbox" class="fixed inset-0 z-[60] bg-black flex items-center justify-center animate-zoom-in" @click.self="closeLightbox">
-            <button @click="closeLightbox" class="absolute top-5 right-5 text-gray-500 hover:text-white text-2xl transition">
+        <div v-if="showLightbox" class="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center" @click.self="closeLightbox">
+            <button @click="closeLightbox" class="absolute top-6 right-6 text-white/50 hover:text-white text-3xl transition">
                 <i class="fa-solid fa-times"></i>
             </button>
-            <img :src="selectedItem.image" class="max-w-full max-h-full object-contain">
+            <img :src="selectedItem.image" class="max-w-[95%] max-h-[95vh] object-contain shadow-2xl">
         </div>
 
-        <!-- Toast -->
-        <div v-if="toastMessage" class="fixed bottom-10 right-10 bg-pure-accent text-black px-6 py-3 rounded shadow-[0_0_20px_rgba(56,189,248,0.4)] font-bold transform transition-all z-[70] flex items-center gap-3 border border-pure-accent">
-            <i class="fa-solid fa-check"></i> {{ toastMessage }}
+        <!-- Toast Notification -->
+        <div v-if="toastMessage" class="fixed top-6 right-6 bg-pro-gold text-black px-6 py-3 rounded-lg shadow-2xl font-bold transform transition-all z-[70] flex items-center gap-3 animate-bounce">
+            <i class="fa-solid fa-circle-check"></i> {{ toastMessage }}
         </div>
 
     </div>
@@ -262,11 +287,11 @@
         createApp({
             data() {
                 return {
-                    // ★★★ 設定區 ★★★
-                    githubRepo: 'chun0712/Prompts_Lab', // 你的帳號/儲存庫
-                    jsonFileName: 'data.json',          // 確保這裡跟 GitHub 檔名一致
+                    // ★ 設定你的 GitHub 儲存庫
+                    githubRepo: 'chun0712/Prompts_Lab',
+                    jsonFileName: 'data.json',
 
-                    items: [], // 這裡留空，等待從 JSON 載入
+                    items: [],
                     isLoading: true,
                     error: null,
                     searchQuery: '',
@@ -280,9 +305,8 @@
                 }
             },
             computed: {
-                // 計算 JSON 檔案的編輯網址 (給右上角按鈕用)
                 githubJsonEditUrl() {
-                    return `https://github.com/${this.githubRepo}/edit/main/${this.jsonFileName}`;
+                    return `https://github.com/chun0712/Prompts_Lab/blob/main/data.json`;
                 },
                 uniqueCategories() {
                     const categories = new Set(this.items.map(item => item.category));
@@ -311,29 +335,31 @@
                 currentCategory() { this.currentPage = 1; }
             },
             methods: {
-                // ★ 讀取資料的核心功能
                 async fetchData() {
                     this.isLoading = true;
                     try {
-                        // 加上時間戳記避免瀏覽器快取舊資料
                         const response = await fetch(`./${this.jsonFileName}?t=${new Date().getTime()}`);
-                        if (!response.ok) throw new Error('無法找到 data.json，請檢查檔名');
+                        if (!response.ok) throw new Error(`找不到 ${this.jsonFileName}`);
                         this.items = await response.json();
                         this.error = null;
                     } catch (err) {
                         console.error(err);
-                        this.error = "無法讀取資料庫，請檢查 GitHub 檔名是否為 data.json";
+                        this.error = "無法讀取資料，請確認 GitHub 檔案名稱是否正確。";
                     } finally {
                         this.isLoading = false;
                     }
                 },
-                // ★ 取得個別編輯網址的邏輯
                 getEditUrl(item) {
-                    // 1. 如果 JSON 裡面有寫 "editUrl" (例如 Issues 連結)，優先使用
                     if (item.editUrl) return item.editUrl;
-
-                    // 2. 如果沒有，預設連去編輯整個 JSON 檔案
                     return this.githubJsonEditUrl;
+                },
+                // ★ 刪除功能邏輯
+                deleteItem(item) {
+                    const confirmDelete = confirm(`【系統提示】\n因為這是靜態網站，無法直接從網頁刪除資料庫。\n\n按下「確定」後，將會帶您前往 GitHub 的 data.json 編輯頁面。\n\n請您手動刪除 ID 為 [ ${item.id} ] 的那一段資料。`);
+
+                    if (confirmDelete) {
+                        window.open(this.githubJsonEditUrl, '_blank');
+                    }
                 },
                 openModal(item) {
                     this.selectedItem = item;
@@ -356,7 +382,7 @@
                 },
                 copyPrompt(text) {
                     navigator.clipboard.writeText(text).then(() => {
-                        this.showToast("已複製！");
+                        this.showToast("指令已複製！");
                     });
                 },
                 showToast(msg) {
@@ -367,7 +393,7 @@
                 }
             },
             mounted() {
-                this.fetchData(); // 網頁載入時自動執行
+                this.fetchData();
             }
         }).mount('#app');
     </script>

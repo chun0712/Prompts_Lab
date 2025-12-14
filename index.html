@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prompt Vault | 專業提示詞庫</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- ★★★ 新增：引入 YAML 解析器 ★★★ -->
+    <!-- ★★★ 核心：引入 YAML 解析器 (必備) ★★★ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
@@ -17,197 +20,354 @@
                 extend: {
                     colors: {
                         pro: {
-                            bg: '#0f1117', card: '#1e212b', border: '#2d3342',
-                            gold: '#fbbf24', goldHover: '#f59e0b',
-                            green: '#238636', greenHover: '#2ea043',
-                            red: '#da3633', text: '#e6edf3', subtext: '#8b949e'
+                            bg: '#0f1117',      // 專業深灰底
+                            card: '#1e212b',    // 卡片背景
+                            border: '#30363d',  // GitHub 風格邊框
+                            gold: '#f2cc60',    // 柔和金
+                            goldHover: '#e3b341',
+                            green: '#238636',   // GitHub 按鈕綠
+                            greenHover: '#2ea043',
+                            red: '#da3633',     // 刪除紅
+                            text: '#c9d1d9',    // 柔和白字
+                            subtext: '#8b949e'  // 次要灰字
                         }
                     },
-                    fontFamily: { sans: ['Inter', 'Microsoft JhengHei', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'Menlo', 'monospace'] },
+                    fontFamily: {
+                        sans: ['Inter', 'Microsoft JhengHei', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'monospace'],
+                    },
                     animation: { 'modal-in': 'modalIn 0.2s ease-out' },
-                    keyframes: { modalIn: { '0%': { opacity: '0', transform: 'scale(0.95)' }, '100%': { opacity: '1', transform: 'scale(1)' } } }
+                    keyframes: { modalIn: { '0%': { opacity: '0', transform: 'scale(0.98)' }, '100%': { opacity: '1', transform: 'scale(1)' } } }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #0f1117; color: #e6edf3; }
+        body { background-color: #0d1117; color: #c9d1d9; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f1117; }
+        ::-webkit-scrollbar-track { background: #0d1117; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+        /* 讓 Prompt 顯示區域保留換行 */
+        .prompt-display { white-space: pre-wrap; word-wrap: break-word; }
         .card-image { transition: transform 0.4s ease; }
     </style>
 </head>
 <body class="bg-pro-bg text-pro-text font-sans min-h-screen flex flex-col">
 
     <div id="app" class="flex flex-col min-h-screen">
+
         <!-- Header -->
-        <header class="sticky top-0 z-40 bg-pro-bg/95 backdrop-blur border-b border-pro-border py-4 px-6 shadow-md">
+        <header class="sticky top-0 z-40 bg-[#0d1117]/95 backdrop-blur border-b border-pro-border py-4 px-6 shadow-sm">
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3 cursor-pointer group" @click="resetSearch">
-                    <div class="w-10 h-10 rounded-lg bg-pro-gold flex items-center justify-center shadow-lg shadow-yellow-500/20 group-hover:scale-105 transition-transform">
-                        <i class="fa-solid fa-layer-group text-black text-xl"></i>
+                    <div class="w-10 h-10 rounded-lg bg-pro-gold flex items-center justify-center shadow-lg shadow-yellow-500/10 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-layer-group text-[#0d1117] text-xl"></i>
                     </div>
                     <div>
                         <h1 class="text-xl font-bold tracking-wide text-white">PROMPT <span class="text-pro-gold">VAULT</span></h1>
                         <p class="text-xs text-pro-subtext">專業靈感資料庫</p>
                     </div>
                 </div>
+
                 <div class="relative w-full md:w-1/3">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-pro-subtext">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                    <input type="text" v-model="searchQuery" placeholder="搜尋..." class="w-full bg-[#0d1117] border border-pro-border rounded-md py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-pro-gold focus:ring-1 focus:ring-pro-gold transition-all text-white placeholder-gray-600">
+                    <input type="text" v-model="searchQuery" placeholder="搜尋 Prompt 或標題..." class="w-full bg-[#010409] border border-pro-border rounded-md py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-pro-gold focus:ring-1 focus:ring-pro-gold transition-all text-white placeholder-gray-600">
                 </div>
-                <a :href="githubEditUrl" target="_blank" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-md bg-[#21262d] border border-pro-border hover:border-pro-subtext text-sm font-medium transition-all text-pro-text hover:bg-[#30363d]">
-                    <i class="fa-solid fa-code-branch"></i><span>管理資料庫</span>
+
+                <!-- GitHub Manage Button -->
+                <a :href="githubManageUrl" target="_blank" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-md bg-[#21262d] border border-pro-border hover:border-gray-500 hover:text-white text-sm font-medium transition-all text-pro-text">
+                    <i class="fa-brands fa-github"></i>
+                    <span>管理資料庫</span>
                 </a>
             </div>
         </header>
 
-        <!-- Nav -->
+        <!-- Category Nav -->
         <nav class="py-8 px-6 max-w-7xl mx-auto w-full">
             <div class="flex flex-wrap gap-3 justify-center md:justify-start">
-                <button @click="currentCategory = 'All'" :class="['px-5 py-2 rounded-md text-sm font-bold transition-all border', currentCategory === 'All' ? 'bg-pro-gold text-black border-pro-gold shadow-[0_0_15px_rgba(251,191,36,0.2)]' : 'bg-transparent border-pro-border text-pro-subtext hover:text-white hover:border-gray-500']">全部顯示</button>
-                <button v-for="cat in uniqueCategories" :key="cat" @click="currentCategory = cat" :class="['px-5 py-2 rounded-md text-sm font-bold transition-all border', currentCategory === cat ? 'bg-pro-gold text-black border-pro-gold shadow-[0_0_15px_rgba(251,191,36,0.2)]' : 'bg-transparent border-pro-border text-pro-subtext hover:text-white hover:border-gray-500']">{{ cat }}</button>
+                <button @click="currentCategory = 'All'" :class="['px-5 py-2 rounded-md text-sm font-bold transition-all border', currentCategory === 'All' ? 'bg-pro-gold text-[#0d1117] border-pro-gold' : 'bg-transparent border-pro-border text-pro-subtext hover:text-white hover:border-gray-500']">全部顯示</button>
+                <button v-for="cat in uniqueCategories" :key="cat" @click="currentCategory = cat" :class="['px-5 py-2 rounded-md text-sm font-bold transition-all border', currentCategory === cat ? 'bg-pro-gold text-[#0d1117] border-pro-gold' : 'bg-transparent border-pro-border text-pro-subtext hover:text-white hover:border-gray-500']">{{ cat }}</button>
             </div>
         </nav>
 
-        <!-- Main -->
+        <!-- Main Content -->
         <main class="flex-grow px-6 pb-10 max-w-7xl mx-auto w-full">
-            <div v-if="isLoading" class="text-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-pro-gold text-4xl"></i><p class="mt-4 text-pro-subtext">資料庫連線中...</p></div>
-            <div v-else-if="error" class="text-center py-20 text-red-400 bg-red-900/10 border border-red-900 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i><p class="font-bold">讀取失敗</p><p class="text-sm mt-1">{{ error }}</p></div>
+
+            <!-- Loading -->
+            <div v-if="isLoading" class="text-center py-20">
+                <i class="fa-solid fa-circle-notch fa-spin text-pro-gold text-4xl"></i>
+                <p class="mt-4 text-pro-subtext">正在讀取 data.yaml...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div v-else-if="error" class="text-center py-20 text-red-400 bg-red-900/10 border border-red-900 rounded-lg max-w-2xl mx-auto p-8">
+                <i class="fa-solid fa-triangle-exclamation text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">無法讀取資料庫</h3>
+                <p class="mb-4">{{ error }}</p>
+                <div class="text-left text-sm bg-black/30 p-4 rounded font-mono text-gray-400">
+                    <p>檢查清單：</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>確認 GitHub 上有 <strong>data.yaml</strong> 檔案</li>
+                        <li>確認 data.yaml 內容的<strong>縮排</strong>正確 (YAML 很嚴格)</li>
+                        <li>確認 data.yaml 不是空的</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Content Grid -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <div v-for="item in paginatedItems" :key="item.id" class="group bg-pro-card border border-pro-border rounded-lg overflow-hidden hover:border-pro-gold transition-colors duration-300 flex flex-col cursor-pointer shadow-lg" @click="openModal(item)">
+                <div v-for="item in paginatedItems" :key="item.id"
+                     class="group bg-pro-card border border-pro-border rounded-lg overflow-hidden hover:border-pro-gold transition-colors duration-300 flex flex-col cursor-pointer shadow-lg"
+                     @click="openModal(item)">
+
                     <div class="relative aspect-video overflow-hidden bg-black border-b border-pro-border">
-                        <img :src="item.image" loading="lazy" class="w-full h-full object-cover card-image group-hover:scale-105">
-                        <div class="absolute top-2 right-2"><span class="bg-black/70 backdrop-blur text-xs font-bold text-pro-gold px-2 py-1 rounded border border-pro-border shadow-sm">{{ item.category }}</span></div>
+                        <img :src="item.image" :alt="item.title" loading="lazy" class="w-full h-full object-cover card-image group-hover:scale-105">
+                        <div class="absolute top-2 right-2">
+                            <span class="bg-[#0d1117]/80 backdrop-blur text-xs font-bold text-pro-gold px-2 py-1 rounded border border-pro-border shadow-sm">
+                                {{ item.category }}
+                            </span>
+                        </div>
                     </div>
+
                     <div class="p-5 flex flex-col flex-grow">
                         <h3 class="text-lg font-bold text-white mb-2 group-hover:text-pro-gold transition-colors">{{ item.title }}</h3>
                         <p class="text-sm text-pro-subtext line-clamp-2 mb-4 leading-relaxed">{{ item.description }}</p>
+
                         <div class="mt-auto pt-4 border-t border-pro-border flex items-center justify-between">
                             <span class="text-xs text-pro-subtext font-mono">ID: {{ item.id }}</span>
-                            <button @click.stop="copyPrompt(item.prompt)" class="text-xs bg-[#21262d] hover:bg-pro-gold hover:text-black text-gray-300 px-3 py-1.5 rounded border border-pro-border hover:border-pro-gold transition-all font-bold">複製</button>
+                            <button @click.stop="copyPrompt(item.prompt)" class="text-xs bg-[#21262d] hover:bg-pro-gold hover:text-black text-gray-300 px-3 py-1.5 rounded border border-pro-border hover:border-pro-gold transition-all font-bold">
+                                複製
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div v-if="!isLoading && !error && filteredItems.length === 0" class="flex flex-col items-center justify-center py-20 text-pro-subtext"><i class="fa-solid fa-folder-open text-5xl mb-4 opacity-50"></i><p>找不到相關資料</p></div>
+
+            <!-- Empty State -->
+            <div v-if="!isLoading && !error && filteredItems.length === 0" class="flex flex-col items-center justify-center py-20 text-pro-subtext">
+                <i class="fa-solid fa-folder-open text-5xl mb-4 opacity-50"></i>
+                <p>找不到相關資料</p>
+            </div>
         </main>
 
         <!-- Pagination -->
-        <footer class="py-6 border-t border-pro-border bg-pro-card mt-auto">
+        <footer class="py-6 border-t border-pro-border bg-[#161b22] mt-auto">
             <div class="flex justify-center items-center gap-4">
-                <button @click="currentPage--" :disabled="currentPage === 1" class="px-4 py-2 rounded bg-[#0d1117] border border-pro-border hover:border-gray-500 text-sm disabled:opacity-30 transition">上一頁</button>
+                <button @click="currentPage--" :disabled="currentPage === 1" class="px-4 py-2 rounded bg-[#21262d] border border-pro-border hover:border-gray-500 text-sm disabled:opacity-30 transition">上一頁</button>
                 <span class="text-sm text-pro-subtext font-mono">Page <span class="text-pro-gold">{{ currentPage }}</span></span>
-                <button @click="currentPage++" :disabled="currentPage === totalPages" class="px-4 py-2 rounded bg-[#0d1117] border border-pro-border hover:border-gray-500 text-sm disabled:opacity-30 transition">下一頁</button>
+                <button @click="currentPage++" :disabled="currentPage === totalPages" class="px-4 py-2 rounded bg-[#21262d] border border-pro-border hover:border-gray-500 text-sm disabled:opacity-30 transition">下一頁</button>
             </div>
         </footer>
 
-        <!-- Modal -->
+        <!-- Detail Modal -->
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="closeModal">
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"></div>
+            <div class="absolute inset-0 bg-[#0d1117]/90 backdrop-blur-sm transition-opacity"></div>
+
             <div class="relative bg-pro-card border border-pro-border w-full max-w-6xl rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-modal-in">
-                <button @click="closeModal" class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition backdrop-blur"><i class="fa-solid fa-times"></i></button>
+
+                <button @click="closeModal" class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition backdrop-blur">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+
+                <!-- Left: Image -->
                 <div class="w-full md:w-1/2 bg-black flex items-center justify-center border-r border-pro-border relative group cursor-zoom-in" @click="openLightbox">
                     <img :src="selectedItem.image" class="max-w-full max-h-[50vh] md:max-h-full object-contain">
                     <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition">點擊放大</div>
                 </div>
+
+                <!-- Right: Content -->
                 <div class="w-full md:w-1/2 p-8 overflow-y-auto bg-pro-card flex flex-col">
                     <div class="mb-6 border-b border-pro-border pb-6">
                         <div class="flex items-center gap-3 mb-3">
-                            <span class="text-xs font-bold text-black bg-pro-gold px-2 py-1 rounded">{{ selectedItem.category }}</span>
-                            <span class="text-xs text-pro-subtext">{{ selectedItem.date || 'No Date' }}</span>
+                            <span class="text-xs font-bold text-[#0d1117] bg-pro-gold px-2 py-1 rounded">{{ selectedItem.category }}</span>
+                            <span class="text-xs text-pro-subtext">{{ selectedItem.author || 'Admin' }}</span>
                         </div>
                         <h2 class="text-3xl font-bold text-white mb-4">{{ selectedItem.title }}</h2>
                         <p class="text-pro-subtext leading-7">{{ selectedItem.description }}</p>
                     </div>
+
                     <div class="flex-grow mb-6">
                         <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-xs text-pro-gold font-bold uppercase tracking-widest"><i class="fa-solid fa-terminal mr-1"></i> Prompt 指令</h4>
-                            <button @click="copyPrompt(selectedItem.prompt)" class="text-xs text-white bg-[#21262d] hover:bg-white hover:text-black border border-pro-border px-3 py-1 rounded transition"><i class="fa-regular fa-copy"></i></button>
+                            <h4 class="text-xs text-pro-gold font-bold uppercase tracking-widest">
+                                <i class="fa-solid fa-terminal mr-1"></i> Prompt 指令
+                            </h4>
+                            <button @click="copyPrompt(selectedItem.prompt)" class="text-xs text-white bg-[#21262d] hover:bg-white hover:text-black border border-pro-border px-3 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
                         </div>
-                        <div class="bg-[#0d1117] border border-pro-border rounded-lg p-4 font-mono text-sm text-gray-300 leading-6 whitespace-pre-wrap select-text h-48 overflow-y-auto custom-scroll">
+                        <!-- Prompt 顯示區：支援 YAML 換行 -->
+                        <div class="bg-[#0d1117] border border-pro-border rounded-lg p-4 font-mono text-sm text-gray-300 leading-6 prompt-display custom-scroll h-64 overflow-y-auto">
                             {{ selectedItem.prompt }}
                         </div>
                     </div>
+
                     <div class="grid grid-cols-2 gap-4 mt-auto">
-                        <a :href="getEditUrl(selectedItem)" target="_blank" class="flex items-center justify-center gap-2 bg-pro-green hover:bg-pro-greenHover text-white py-3 rounded-lg font-bold transition shadow-lg hover:shadow-green-900/30"><i class="fa-regular fa-pen-to-square"></i> 編輯資料</a>
-                        <button @click="deleteItem(selectedItem)" class="flex items-center justify-center gap-2 bg-pro-card border border-pro-red text-pro-red hover:bg-pro-red hover:text-white py-3 rounded-lg font-bold transition"><i class="fa-regular fa-trash-can"></i> 刪除資料</button>
+                        <!-- 編輯按鈕：直接去 GitHub 編輯 data.yaml -->
+                        <a :href="githubEditUrl" target="_blank" class="flex items-center justify-center gap-2 bg-pro-green hover:bg-pro-greenHover text-white py-3 rounded-lg font-bold transition shadow-lg hover:shadow-green-900/30">
+                            <i class="fa-regular fa-pen-to-square"></i> 編輯資料
+                        </a>
+                        <!-- 刪除按鈕 -->
+                        <button @click="deleteItem(selectedItem)" class="flex items-center justify-center gap-2 bg-pro-card border border-pro-red text-pro-red hover:bg-pro-red hover:text-white py-3 rounded-lg font-bold transition">
+                            <i class="fa-regular fa-trash-can"></i> 刪除資料
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Lightbox -->
         <div v-if="showLightbox" class="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center" @click.self="closeLightbox">
-            <button @click="closeLightbox" class="absolute top-6 right-6 text-white/50 hover:text-white text-3xl transition"><i class="fa-solid fa-times"></i></button>
+            <button @click="closeLightbox" class="absolute top-6 right-6 text-white/50 hover:text-white text-3xl transition">
+                <i class="fa-solid fa-times"></i>
+            </button>
             <img :src="selectedItem.image" class="max-w-[95%] max-h-[95vh] object-contain shadow-2xl">
         </div>
-        <div v-if="toastMessage" class="fixed top-6 right-6 bg-pro-gold text-black px-6 py-3 rounded-lg shadow-2xl font-bold transform transition-all z-[70] flex items-center gap-3 animate-bounce"><i class="fa-solid fa-circle-check"></i> {{ toastMessage }}</div>
+
+        <!-- Toast -->
+        <div v-if="toastMessage" class="fixed top-6 right-6 bg-pro-gold text-[#0d1117] px-6 py-3 rounded-lg shadow-2xl font-bold transform transition-all z-[70] flex items-center gap-3 animate-bounce">
+            <i class="fa-solid fa-circle-check"></i> {{ toastMessage }}
+        </div>
+
     </div>
 
     <script>
         const { createApp } = Vue;
+
         createApp({
             data() {
                 return {
-                    // ★ 這裡改為 data.yaml
+                    // ★★★ 核心設定：已幫你設定好 ★★★
                     githubRepo: 'chun0712/Prompts_Lab',
-                    dataFile: 'data.yaml',
-                    items: [], isLoading: true, error: null, searchQuery: '', currentCategory: 'All', currentPage: 1, itemsPerPage: 12, showModal: false, showLightbox: false, selectedItem: {}, toastMessage: null
+                    dataFile: 'data.yaml', // 這裡只能填檔名
+
+                    items: [],
+                    isLoading: true,
+                    error: null,
+                    searchQuery: '',
+                    currentCategory: 'All',
+                    currentPage: 1,
+                    itemsPerPage: 12,
+                    showModal: false,
+                    showLightbox: false,
+                    selectedItem: {},
+                    toastMessage: null
                 }
             },
             computed: {
-                // 修改編輯網址，指向 YAML
-                githubEditUrl() { return `https://github.com/chun0712/Prompts_Lab/blob/main/data.yaml`; },
-                uniqueCategories() { return Array.from(new Set(this.items.map(item => item.category))); },
+                // 產生右上角「管理資料庫」的連結 -> 指向 Repo 首頁
+                githubManageUrl() {
+                    return `https://github.com/${this.githubRepo}`;
+                },
+                // 產生卡片內「編輯」按鈕的連結 -> 指向編輯 data.yaml
+                githubEditUrl() {
+                    return `https://github.com/${this.githubRepo}/edit/main/${this.dataFile}`;
+                },
+                uniqueCategories() {
+                    const categories = new Set(this.items.map(item => item.category));
+                    return Array.from(categories);
+                },
                 filteredItems() {
                     if (!this.items.length) return [];
                     return this.items.filter(item => {
+                        const promptText = item.prompt || '';
                         const matchesSearch = (item.title || '').toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                                              (item.prompt || '').toLowerCase().includes(this.searchQuery.toLowerCase());
+                                              promptText.toLowerCase().includes(this.searchQuery.toLowerCase());
                         const matchesCategory = this.currentCategory === 'All' || item.category === this.currentCategory;
                         return matchesSearch && matchesCategory;
                     });
                 },
-                paginatedItems() { const start = (this.currentPage - 1) * this.itemsPerPage; return this.filteredItems.slice(start, start + this.itemsPerPage); },
-                totalPages() { return Math.ceil(this.filteredItems.length / this.itemsPerPage) || 1; }
+                paginatedItems() {
+                    const start = (this.currentPage - 1) * this.itemsPerPage;
+                    const end = start + this.itemsPerPage;
+                    return this.filteredItems.slice(start, end);
+                },
+                totalPages() {
+                    return Math.ceil(this.filteredItems.length / this.itemsPerPage) || 1;
+                }
             },
-            watch: { searchQuery() { this.currentPage = 1; }, currentCategory() { this.currentPage = 1; } },
+            watch: {
+                searchQuery() { this.currentPage = 1; },
+                currentCategory() { this.currentPage = 1; }
+            },
             methods: {
-                // ★ 讀取功能大改版：支援 YAML
                 async fetchData() {
                     this.isLoading = true;
                     try {
+                        // 讀取 YAML 檔案
                         const response = await fetch(`./${this.dataFile}?t=${new Date().getTime()}`);
-                        if (!response.ok) throw new Error(`找不到 ${this.dataFile}`);
 
-                        // 讀取文字內容
+                        if (!response.ok) {
+                            throw new Error(`無法讀取檔案 (${response.status})。請確認 GitHub 上是否有 ${this.dataFile}。`);
+                        }
+
                         const textData = await response.text();
 
-                        // 使用 js-yaml 進行解析
-                        this.items = jsyaml.load(textData);
+                        // 使用 js-yaml 解析
+                        try {
+                            const parsedData = jsyaml.load(textData);
+                            // 檢查是否為陣列
+                            if (Array.isArray(parsedData)) {
+                                this.items = parsedData;
+                            } else {
+                                // 如果是空的或格式不對，給個空陣列避免報錯
+                                this.items = [];
+                                console.warn("YAML 解析成功，但內容不是陣列，可能是空的？");
+                            }
+                            this.error = null;
+                        } catch (e) {
+                            throw new Error("YAML 格式錯誤：請檢查縮排是否正確。\n" + e.message);
+                        }
 
-                        this.error = null;
                     } catch (err) {
                         console.error(err);
-                        this.error = "無法讀取資料，請確認是否已建立 data.yaml 檔案";
+                        this.error = err.message;
                     } finally {
                         this.isLoading = false;
                     }
                 },
-                getEditUrl(item) { return item.editUrl || this.githubEditUrl; },
-                deleteItem(item) { if (confirm(`【系統提示】請前往 GitHub 手動刪除 ID 為 [ ${item.id} ] 的資料。`)) window.open(this.githubEditUrl, '_blank'); },
-                openModal(item) { this.selectedItem = item; this.showModal = true; document.body.style.overflow = 'hidden'; },
-                closeModal() { this.showModal = false; document.body.style.overflow = 'auto'; },
-                openLightbox() { this.showLightbox = true; },
-                closeLightbox() { this.showLightbox = false; },
-                resetSearch() { this.searchQuery = ''; this.currentCategory = 'All'; },
-                copyPrompt(text) { navigator.clipboard.writeText(text).then(() => { this.showToast("指令已複製！"); }); },
-                showToast(msg) { this.toastMessage = msg; setTimeout(() => { this.toastMessage = null; }, 2000); }
+                deleteItem(item) {
+                    const confirmDelete = confirm(`【系統提示】\n請前往 GitHub 手動刪除 ID 為 [ ${item.id} ] 的資料。\n\n點擊「確定」將開啟編輯頁面。`);
+                    if (confirmDelete) {
+                        window.open(this.githubEditUrl, '_blank');
+                    }
+                },
+                openModal(item) {
+                    this.selectedItem = item;
+                    this.showModal = true;
+                    document.body.style.overflow = 'hidden';
+                },
+                closeModal() {
+                    this.showModal = false;
+                    document.body.style.overflow = 'auto';
+                },
+                openLightbox() {
+                    this.showLightbox = true;
+                },
+                closeLightbox() {
+                    this.showLightbox = false;
+                },
+                resetSearch() {
+                    this.searchQuery = '';
+                    this.currentCategory = 'All';
+                },
+                copyPrompt(text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.showToast("指令已複製！");
+                    });
+                },
+                showToast(msg) {
+                    this.toastMessage = msg;
+                    setTimeout(() => {
+                        this.toastMessage = null;
+                    }, 2000);
+                }
             },
-            mounted() { this.fetchData(); }
+            mounted() {
+                this.fetchData();
+            }
         }).mount('#app');
     </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt Vault | 提示詞資料庫</title>
+    <title>AI Prompt Library | 靈感資料庫</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue.js 3 -->
@@ -11,242 +11,258 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- 自定義樣式配置 (科技黑 + 亮黃配色) -->
+    <!-- 設定新風格：深海極光 (Deep Ocean + Cyan) -->
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        tech: {
-                            bg: '#0f0f11',      // 深黑背景
-                            card: '#18181b',    // 卡片背景
-                            accent: '#fbbf24',  // 亮黃色 (類似 Nano Banana)
-                            text: '#e4e4e7',    // 淺灰字體
-                            border: '#27272a'   // 邊框色
+                        slate: {
+                            850: '#1e293b', // 卡片背景
+                            900: '#0f172a', // 網頁背景
+                            950: '#020617', // 最深黑
+                        },
+                        primary: {
+                            400: '#22d3ee', // 青色亮光
+                            500: '#06b6d4', // 按鈕主色
+                            600: '#0891b2', // 按鈕懸停
                         }
                     },
                     fontFamily: {
-                        mono: ['Menlo', 'Monaco', 'Courier New', 'monospace'],
+                        sans: ['Inter', 'Microsoft JhengHei', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'zoom-in': 'zoomIn 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        zoomIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        }
                     }
                 }
             }
         }
     </script>
     <style>
-        /* 自定義捲軸 */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f0f11; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+        body { background-color: #0f172a; }
+        /* 隱藏捲軸但保留功能 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="bg-tech-bg text-tech-text font-sans min-h-screen flex flex-col">
+<body class="bg-slate-900 text-slate-200 font-sans min-h-screen flex flex-col selection:bg-primary-500 selection:text-white">
 
     <div id="app" class="flex flex-col min-h-screen">
 
-        <!-- 1. 最上方搜尋列與 Header -->
-        <header class="sticky top-0 z-40 bg-tech-bg/90 backdrop-blur border-b border-tech-border py-4 px-6 shadow-lg">
+        <!-- Header -->
+        <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 py-4 px-6">
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-bolt text-tech-accent text-2xl"></i>
-                    <h1 class="text-2xl font-bold tracking-wider">PROMPT<span class="text-tech-accent">VAULT</span></h1>
+                <!-- Logo -->
+                <div class="flex items-center gap-3 group cursor-pointer" @click="resetSearch">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-blue-600 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:shadow-primary-500/40 transition-all">
+                        <i class="fa-solid fa-brain text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-wide text-white">AI PROMPT <span class="text-primary-400">HUB</span></h1>
+                        <p class="text-xs text-slate-400">靈感與指令庫</p>
+                    </div>
                 </div>
 
-                <!-- 搜尋框 -->
-                <div class="relative w-full md:w-1/2">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                        <i class="fa-solid fa-search text-gray-500"></i>
+                <!-- Search -->
+                <div class="relative w-full md:w-1/3">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">
+                        <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
                     <input
                         type="text"
                         v-model="searchQuery"
-                        placeholder="搜尋提示詞、標題或描述..."
-                        class="w-full bg-tech-card border border-tech-border rounded-full py-2 pl-10 pr-4 focus:outline-none focus:border-tech-accent focus:ring-1 focus:ring-tech-accent transition-all text-sm"
+                        placeholder="搜尋關鍵字..."
+                        class="w-full bg-slate-800 border border-slate-700 rounded-xl py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all placeholder-slate-500 text-white"
                     >
                 </div>
 
-                <div class="flex gap-2">
-                    <a href="https://github.com/YOUR_USERNAME/REPO_NAME" target="_blank" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition">
-                        <i class="fa-brands fa-github"></i> GitHub
-                    </a>
-                </div>
+                <!-- GitHub Button -->
+                <a :href="githubEditUrl" target="_blank" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 transition-all text-sm font-medium text-slate-300 hover:text-white group">
+                    <i class="fa-brands fa-github text-lg group-hover:rotate-12 transition-transform"></i>
+                    <span>編輯資料庫</span>
+                </a>
             </div>
         </header>
 
-        <!-- 3. 類別標籤過濾區 -->
+        <!-- Category Nav -->
         <nav class="py-6 px-6 max-w-7xl mx-auto w-full">
             <div class="flex flex-wrap gap-2 justify-center md:justify-start">
                 <button
                     @click="currentCategory = 'All'"
-                    :class="['px-4 py-1.5 rounded-full text-sm font-medium transition-all border',
-                    currentCategory === 'All' ? 'bg-tech-accent text-black border-tech-accent' : 'bg-transparent border-tech-border text-gray-400 hover:border-gray-400']">
-                    <i class="fa-solid fa-layer-group mr-1"></i> 全部
+                    :class="['px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 border',
+                    currentCategory === 'All'
+                        ? 'bg-gradient-to-r from-primary-600 to-blue-600 border-transparent text-white shadow-lg shadow-primary-500/25'
+                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-750']">
+                    全部
                 </button>
                 <button
                     v-for="cat in uniqueCategories"
                     :key="cat"
                     @click="currentCategory = cat"
-                    :class="['px-4 py-1.5 rounded-full text-sm font-medium transition-all border',
-                    currentCategory === cat ? 'bg-tech-accent text-black border-tech-accent' : 'bg-transparent border-tech-border text-gray-400 hover:border-gray-400']">
+                    :class="['px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 border',
+                    currentCategory === cat
+                        ? 'bg-gradient-to-r from-primary-600 to-blue-600 border-transparent text-white shadow-lg shadow-primary-500/25'
+                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-750']">
                     {{ cat }}
                 </button>
             </div>
         </nav>
 
-        <!-- Main Content -->
+        <!-- Main Grid -->
         <main class="flex-grow px-6 pb-10 max-w-7xl mx-auto w-full">
-
-            <!-- 2. 排列方式：Grid 網格 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
                 <div v-for="item in paginatedItems" :key="item.id"
-                     class="group bg-tech-card border border-tech-border rounded-xl overflow-hidden hover:border-tech-accent/50 hover:shadow-lg hover:shadow-tech-accent/10 transition-all duration-300 flex flex-col">
+                     class="group bg-slate-850 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-primary-500/50 hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col cursor-pointer"
+                     @click="openModal(item)">
 
-                    <!-- 縮圖區 -->
-                    <div class="relative overflow-hidden aspect-video cursor-pointer" @click="openModal(item)">
-                        <img :src="item.image" :alt="item.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <div class="absolute top-2 right-2 bg-black/70 text-xs px-2 py-1 rounded text-white backdrop-blur">
-                            <i class="fa-solid fa-expand"></i>
+                    <!-- Thumbnail -->
+                    <div class="relative aspect-[4/3] overflow-hidden bg-slate-900">
+                        <img :src="item.image" :alt="item.title" loading="lazy" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent opacity-60"></div>
+                        <div class="absolute top-3 left-3 bg-slate-950/70 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-primary-400 border border-primary-500/20">
+                            {{ item.category }}
                         </div>
                     </div>
 
-                    <!-- 內容區 -->
-                    <div class="p-4 flex flex-col flex-grow">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs font-mono text-tech-accent border border-tech-accent/30 bg-tech-accent/10 px-2 py-0.5 rounded">
-                                {{ item.category }}
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-2 group-hover:text-tech-accent transition-colors cursor-pointer" @click="openModal(item)">
+                    <!-- Content -->
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h3 class="text-lg font-bold text-white mb-2 group-hover:text-primary-400 transition-colors line-clamp-1">
                             {{ item.title }}
                         </h3>
-                        <p class="text-sm text-gray-400 line-clamp-3 mb-4 flex-grow">
+                        <p class="text-sm text-slate-400 line-clamp-2 mb-4 flex-grow font-light leading-relaxed">
                             {{ item.description }}
                         </p>
 
-                        <!-- 底部按鈕區 -->
-                        <div class="mt-auto pt-3 border-t border-tech-border flex justify-between items-center">
-                            <button @click="openModal(item)" class="text-sm text-gray-400 hover:text-white transition">
-                                查看詳情
-                            </button>
-                            <button @click="copyPrompt(item.prompt)" class="bg-gray-800 hover:bg-tech-accent hover:text-black text-gray-300 text-xs px-3 py-1.5 rounded border border-gray-700 hover:border-tech-accent transition flex items-center gap-1">
-                                <i class="fa-regular fa-copy"></i> 複製提示詞
+                        <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-700/50">
+                            <span class="text-xs text-slate-500 flex items-center gap-1">
+                                <i class="fa-regular fa-user"></i> {{ item.author || 'Admin' }}
+                            </span>
+                            <button @click.stop="copyPrompt(item.prompt)" class="text-xs bg-slate-800 hover:bg-primary-600 hover:text-white text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 hover:border-transparent transition-all flex items-center gap-1.5">
+                                <i class="fa-regular fa-copy"></i> 複製
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 無搜尋結果提示 -->
-            <div v-if="filteredItems.length === 0" class="text-center py-20 text-gray-500">
-                <i class="fa-solid fa-ghost text-4xl mb-4"></i>
-                <p>找不到相關提示詞，請嘗試其他關鍵字。</p>
+            <!-- Empty State -->
+            <div v-if="filteredItems.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-500">
+                <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-inbox text-2xl opacity-50"></i>
+                </div>
+                <p>沒有找到相關的提示詞。</p>
             </div>
-
         </main>
 
-        <!-- 4. 頁碼分頁 -->
-        <footer class="py-8 border-t border-tech-border mt-auto bg-tech-bg">
+        <!-- Pagination -->
+        <footer class="py-8 border-t border-slate-800 bg-slate-900/50 mt-auto">
             <div class="flex justify-center items-center gap-4">
-                <button
-                    @click="currentPage--"
-                    :disabled="currentPage === 1"
-                    class="px-4 py-2 rounded-lg bg-tech-card border border-tech-border hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition">
-                    <i class="fa-solid fa-chevron-left"></i> 上一頁
+                <button @click="currentPage--" :disabled="currentPage === 1"
+                    class="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition">
+                    <i class="fa-solid fa-chevron-left"></i>
                 </button>
-
-                <span class="text-gray-400 text-sm">
-                    第 <span class="text-tech-accent font-bold">{{ currentPage }}</span> 頁 / 共 {{ totalPages }} 頁
-                </span>
-
-                <button
-                    @click="currentPage++"
-                    :disabled="currentPage === totalPages"
-                    class="px-4 py-2 rounded-lg bg-tech-card border border-tech-border hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition">
-                    下一頁 <i class="fa-solid fa-chevron-right"></i>
+                <span class="text-sm text-slate-400 font-mono">Page {{ currentPage }} / {{ totalPages }}</span>
+                <button @click="currentPage++" :disabled="currentPage === totalPages"
+                    class="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition">
+                    <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </div>
         </footer>
 
-        <!-- 5. 彈出視窗 (Modal) -->
+        <!-- Detail Modal (詳情視窗) -->
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="closeModal">
-            <!-- 背景遮罩 -->
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+            <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-sm transition-opacity"></div>
 
-            <!-- Modal 本體 -->
-            <div class="relative bg-tech-card border border-tech-border w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-fade-in-up">
+            <div class="relative bg-slate-850 border border-slate-700 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[85vh] animate-zoom-in">
 
-                <!-- 關閉按鈕 -->
-                <button @click="closeModal" class="absolute top-4 right-4 z-10 bg-black/50 hover:bg-red-500/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition">
+                <button @click="closeModal" class="absolute top-4 right-4 z-20 bg-black/40 hover:bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center transition backdrop-blur-md">
                     <i class="fa-solid fa-times"></i>
                 </button>
 
-                <!-- 左側：圖片 (點擊放大) -->
-                <div class="w-full md:w-1/2 bg-black flex items-center justify-center p-4 relative group cursor-zoom-in" @click="toggleImageZoom">
-                    <img :src="selectedItem.image" :class="['max-w-full max-h-[50vh] md:max-h-[85vh] object-contain transition-all duration-300', isImageZoomed ? 'scale-150 z-20 cursor-zoom-out' : '']">
-                    <div v-if="!isImageZoomed" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-xs bg-black/50 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition">
-                        點擊圖片放大
+                <!-- Left: Image (點擊觸發全螢幕) -->
+                <div class="w-full md:w-5/12 bg-black flex items-center justify-center relative group cursor-zoom-in overflow-hidden" @click="openLightbox">
+                    <img :src="selectedItem.image" class="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition duration-500">
+                    <div class="absolute bottom-4 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-md flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
+                        <i class="fa-solid fa-expand"></i> 點擊全螢幕檢視
                     </div>
                 </div>
 
-                <!-- 右側：資訊與提示詞 -->
-                <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col overflow-y-auto bg-gray-900/50">
+                <!-- Right: Content -->
+                <div class="w-full md:w-7/12 p-8 overflow-y-auto bg-slate-850 flex flex-col">
                     <div class="mb-6">
-                        <span class="bg-tech-accent text-black text-xs font-bold px-2 py-1 rounded mb-2 inline-block">{{ selectedItem.category }}</span>
-                        <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">{{ selectedItem.title }}</h2>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4">{{ selectedItem.description }}</p>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-xs font-bold text-primary-400 bg-primary-500/10 px-2 py-1 rounded border border-primary-500/20">
+                                {{ selectedItem.category }}
+                            </span>
+                            <span class="text-xs text-slate-500">{{ selectedItem.date || '2025.12.14' }}</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-4 leading-tight">{{ selectedItem.title }}</h2>
+                        <p class="text-slate-400 text-sm leading-7">{{ selectedItem.description }}</p>
                     </div>
 
-                    <!-- 提示詞區域 -->
-                    <div class="flex-grow bg-[#121212] border border-tech-border rounded-xl p-4 relative group">
-                        <div class="flex justify-between items-center mb-2 border-b border-gray-800 pb-2">
-                            <span class="text-xs text-gray-500 font-mono"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> PROMPT</span>
-                            <button @click="copyPrompt(selectedItem.prompt)" class="text-xs bg-tech-accent text-black px-3 py-1 rounded hover:opacity-90 transition font-bold">
-                                <i class="fa-regular fa-copy mr-1"></i> 複製全部
+                    <div class="flex-grow bg-slate-900/50 border border-slate-800 rounded-xl p-5 relative group">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-xs text-slate-400 font-bold uppercase tracking-wider"><i class="fa-solid fa-terminal mr-2 text-primary-500"></i>Prompt</h4>
+                            <button @click="copyPrompt(selectedItem.prompt)" class="text-xs bg-primary-600 hover:bg-primary-500 text-white px-3 py-1.5 rounded-md transition shadow-lg shadow-primary-500/20">
+                                複製指令
                             </button>
                         </div>
-                        <p class="text-gray-300 font-mono text-sm whitespace-pre-wrap break-words leading-6">
+                        <p class="text-slate-300 font-mono text-sm whitespace-pre-wrap leading-6 break-words select-text">
                             {{ selectedItem.prompt }}
                         </p>
-                    </div>
-
-                    <div class="mt-6 text-xs text-gray-600 border-t border-gray-800 pt-4 flex justify-between">
-                        <span>新增日期：2025-05-20</span>
-                        <span>來源：{{ selectedItem.author || 'Admin' }}</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 提示訊息 (Toast) -->
-        <div v-if="toastMessage" class="fixed bottom-8 right-8 bg-tech-accent text-black px-6 py-3 rounded-lg shadow-lg font-bold transform transition-all animate-bounce-short z-50">
-            <i class="fa-solid fa-check-circle mr-2"></i> {{ toastMessage }}
+        <!-- Fullscreen Lightbox (全螢幕看圖) -->
+        <div v-if="showLightbox" class="fixed inset-0 z-[60] bg-black flex items-center justify-center animate-fade-in" @click.self="closeLightbox">
+            <button @click="closeLightbox" class="absolute top-5 right-5 text-white/70 hover:text-white text-4xl transition">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            <img :src="selectedItem.image" class="max-w-full max-h-full object-contain shadow-2xl">
+        </div>
+
+        <!-- Toast Notification -->
+        <div v-if="toastMessage" class="fixed bottom-10 right-10 bg-gradient-to-r from-primary-600 to-blue-600 text-white px-6 py-3 rounded-lg shadow-2xl font-medium transform transition-all animate-fade-in z-[70] flex items-center gap-3">
+            <i class="fa-solid fa-circle-check"></i> {{ toastMessage }}
         </div>
 
     </div>
 
-    <!-- 邏輯腳本 -->
     <script>
         const { createApp } = Vue;
 
         createApp({
             data() {
                 return {
-                    // 資料庫 (未來可以改成從 .json 檔案讀取)
+                    // ★★★ 請在這裡設定你的 GitHub 網址 ★★★
+                    // 格式：https://github.com/你的帳號/儲存庫名稱/blob/main/data.json (如果用 JSON)
+                    // 或 https://github.com/你的帳號/儲存庫名稱/edit/main/index.html (如果直接改 HTML)
+                    githubRepoUrl: 'https://github.com/mukiwu/mukiwu.github.io', // 範例，請修改
+
                     items: [
                         {
                             id: 1,
                             title: "手沖咖啡簡易流程圖",
                             category: "創意設計",
-                            image: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=600",
+                            image: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=1200",
                             description: "為我生成手沖咖啡流程圖，附上一整段簡易中文，中文清晰...",
                             prompt: "Generate a hand-drawn style infographic for pour-over coffee brewing steps. Include Chinese text labels: 磨豆 (Grind), 悶蒸 (Bloom), 注水 (Pour), 完成 (Finish). Style: Vintage paper background, ink sketch style.",
                             author: "牛仔"
@@ -255,7 +271,7 @@
                             id: 2,
                             title: "星座運勢卡片",
                             category: "人像角色",
-                            image: "https://images.unsplash.com/photo-1532009324734-20a7a5813719?auto=format&fit=crop&q=80&w=600",
+                            image: "https://images.unsplash.com/photo-1532009324734-20a7a5813719?auto=format&fit=crop&q=80&w=1200",
                             description: "請以後「填寫起床時間」，幫我執行以下指令：生成今日運勢...",
                             prompt: "Create a cute tarot card style illustration for 'Daily Horoscope'. Focus on a whimsical, flat illustration style with pastel colors.",
                             author: "MUKI"
@@ -264,7 +280,7 @@
                             id: 3,
                             title: "英文記憶宮殿",
                             category: "學習教育",
-                            image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=600",
+                            image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=1200",
                             description: "為我繪製一個詳細的 {寵物商店} 場景，並標註所有物體的英文單詞...",
                             prompt: "Detailed isometric view of a pet shop interior. Label objects with English vocabulary words in small floating tags. Style: vector art, clean lines, educational poster.",
                             author: "Admin"
@@ -273,7 +289,7 @@
                             id: 4,
                             title: "Cyberpunk 城市夜景",
                             category: "風格轉換",
-                            image: "https://images.unsplash.com/photo-1515630278258-407f66498911?auto=format&fit=crop&q=80&w=600",
+                            image: "https://images.unsplash.com/photo-1515630278258-407f66498911?auto=format&fit=crop&q=80&w=1200",
                             description: "生成一張未來風格的台北夜景，霓虹燈光...",
                             prompt: "Futuristic Taipei city at night, heavy rain, neon lights, cyberpunk aesthetic, towering skyscrapers, flying cars, cinematic lighting, 8k resolution.",
                             author: "Neo"
@@ -282,30 +298,27 @@
                             id: 5,
                             title: "產品攝影：極簡香水",
                             category: "產品攝影",
-                            image: "https://images.unsplash.com/photo-1594035910387-fea477942698?auto=format&fit=crop&q=80&w=600",
+                            image: "https://images.unsplash.com/photo-1594035910387-fea477942698?auto=format&fit=crop&q=80&w=1200",
                             description: "高級香水瓶，水面反射，極簡背景...",
                             prompt: "Product photography of a luxury perfume bottle standing on a rippled water surface. Minimalist background, soft studio lighting, elegant atmosphere.",
                             author: "Studio"
-                        },
-                        // 你可以在這裡繼續複製新增更多資料...
+                        }
                     ],
                     searchQuery: '',
                     currentCategory: 'All',
                     currentPage: 1,
                     itemsPerPage: 8,
                     showModal: false,
+                    showLightbox: false,
                     selectedItem: {},
-                    isImageZoomed: false,
                     toastMessage: null
                 }
             },
             computed: {
-                // 取得所有唯一的類別
                 uniqueCategories() {
                     const categories = new Set(this.items.map(item => item.category));
                     return Array.from(categories);
                 },
-                // 根據搜尋和類別過濾資料
                 filteredItems() {
                     return this.items.filter(item => {
                         const matchesSearch = item.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
@@ -315,19 +328,22 @@
                         return matchesSearch && matchesCategory;
                     });
                 },
-                // 計算分頁後的資料
                 paginatedItems() {
                     const start = (this.currentPage - 1) * this.itemsPerPage;
                     const end = start + this.itemsPerPage;
                     return this.filteredItems.slice(start, end);
                 },
-                // 總頁數
                 totalPages() {
                     return Math.ceil(this.filteredItems.length / this.itemsPerPage) || 1;
+                },
+                // 產生 GitHub 編輯連結的邏輯
+                githubEditUrl() {
+                    // 如果你的資料在 data.json，請修改這裡的邏輯指向 data.json
+                    // 這裡預設是指向 repository 的首頁
+                    return this.githubRepoUrl;
                 }
             },
             watch: {
-                // 當搜尋或切換類別時，回到第一頁
                 searchQuery() { this.currentPage = 1; },
                 currentCategory() { this.currentPage = 1; }
             },
@@ -335,19 +351,25 @@
                 openModal(item) {
                     this.selectedItem = item;
                     this.showModal = true;
-                    this.isImageZoomed = false;
-                    document.body.style.overflow = 'hidden'; // 禁止背景滾動
+                    document.body.style.overflow = 'hidden';
                 },
                 closeModal() {
                     this.showModal = false;
                     document.body.style.overflow = 'auto';
                 },
-                toggleImageZoom() {
-                    this.isImageZoomed = !this.isImageZoomed;
+                openLightbox() {
+                    this.showLightbox = true;
+                },
+                closeLightbox() {
+                    this.showLightbox = false;
+                },
+                resetSearch() {
+                    this.searchQuery = '';
+                    this.currentCategory = 'All';
                 },
                 copyPrompt(text) {
                     navigator.clipboard.writeText(text).then(() => {
-                        this.showToast("已複製提示詞！");
+                        this.showToast("已複製到剪貼簿！");
                     });
                 },
                 showToast(msg) {
@@ -358,7 +380,7 @@
                 }
             },
             mounted() {
-                // 如果你想從外部 JSON 檔案讀取資料，請取消下行的註解
+                // 如果使用外部 JSON，請取消下行註解
                 // this.fetchData();
             }
         }).mount('#app');

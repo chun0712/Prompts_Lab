@@ -1,11 +1,12 @@
 [
   {
     "id": 1,
-    "title": "學霸筆記",
+    "title": "教學黑板風格",
     "category": "筆記設計",
-    "image": "./images/截圖 2025-12-14 中午12.17.33.jpg",
-    "description": "生成圖文筆記",
-    "prompt": "你的 Prompt...",
+    "image": "./images/image.jpg",
+    "description": "黑板粉筆風",
+    "prompt": "將這份文件轉換成專業黑板圖片：包含圖表、箭頭、方框以及用於視覺化解釋核心概念的標註，並使用常見的粉筆顏色，包含但不限藍色，白色，粉紅色。
+字體用繁體中文的手寫字體",
     "author": "Allan"
   }
 ]

@@ -39,3 +39,11 @@
     字體用繁體中文的手寫字體
     (貼上你的 PDF 或其他長文件）
   
+- id: 3
+  title: "學霸筆記風格"
+  category: "圖文類型"
+  image: "./images/3.png"
+  description: ""
+  author: ""
+  prompt: |
+    「生物學霸筆記」風格（方格紙、手繪圖解、彩色麥克筆區塊）(貼上文字內容）

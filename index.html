@@ -76,7 +76,7 @@
                     </div>
                     <div>
                         <h1 class="text-xl font-bold tracking-wide text-white">PROMPT <span class="text-pro-gold">VAULT</span></h1>
-                        <p class="text-xs text-pro-subtext">專業靈感資料庫</p>
+                        <p class="text-xs text-pro-subtext"></p>
                     </div>
                 </div>
 
@@ -96,7 +96,7 @@
                 <!-- GitHub Manage Button -->
                 <a :href="githubJsonEditUrl" target="_blank" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-md bg-[#21262d] border border-pro-border hover:border-pro-subtext text-sm font-medium transition-all text-pro-text hover:bg-[#30363d]">
                     <i class="fa-solid fa-code-branch"></i>
-                    <span>管理資料庫</span>
+                    <span>新增提詞</span>
                 </a>
             </div>
         </header>
@@ -169,7 +169,7 @@
                         </p>
 
                         <div class="mt-auto pt-4 border-t border-pro-border flex items-center justify-between">
-                            <span class="text-xs text-pro-subtext font-mono">ID: {{ item.id }}</span>
+                            <span class="text-xs text-pro-subtext font-mono">#:{{ item.id }}</span>
                             <!-- 小複製按鈕 -->
                             <button @click.stop="copyPrompt(item.prompt)" class="text-xs bg-[#21262d] hover:bg-pro-gold hover:text-black text-gray-300 px-3 py-1.5 rounded border border-pro-border hover:border-pro-gold transition-all font-bold">
                                 複製

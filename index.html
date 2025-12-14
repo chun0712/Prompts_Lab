@@ -160,7 +160,7 @@
             },
             computed: {
                 // 修改編輯網址，指向 YAML
-                githubEditUrl() { return `https://github.com/${this.githubRepo}/edit/main/${this.dataFile}`; },
+                githubEditUrl() { return `https://github.com/chun0712/Prompts_Lab/blob/main/data.yaml`; },
                 uniqueCategories() { return Array.from(new Set(this.items.map(item => item.category))); },
                 filteredItems() {
                     if (!this.items.length) return [];

@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- ★★★ 核心：引入 YAML 解析器 (必備) ★★★ -->
+    <!-- YAML 解析器 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,22 +20,13 @@
                 extend: {
                     colors: {
                         pro: {
-                            bg: '#0f1117',      // 專業深灰底
-                            card: '#1e212b',    // 卡片背景
-                            border: '#30363d',  // GitHub 風格邊框
-                            gold: '#f2cc60',    // 柔和金
-                            goldHover: '#e3b341',
-                            green: '#238636',   // GitHub 按鈕綠
-                            greenHover: '#2ea043',
-                            red: '#da3633',     // 刪除紅
-                            text: '#c9d1d9',    // 柔和白字
-                            subtext: '#8b949e'  // 次要灰字
+                            bg: '#0f1117', card: '#1e212b', border: '#30363d',
+                            gold: '#f2cc60', goldHover: '#e3b341',
+                            green: '#238636', greenHover: '#2ea043',
+                            red: '#da3633', text: '#c9d1d9', subtext: '#8b949e'
                         }
                     },
-                    fontFamily: {
-                        sans: ['Inter', 'Microsoft JhengHei', 'sans-serif'],
-                        mono: ['ui-monospace', 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'monospace'],
-                    },
+                    fontFamily: { sans: ['Inter', 'Microsoft JhengHei', 'sans-serif'], mono: ['Menlo', 'monospace'] },
                     animation: { 'modal-in': 'modalIn 0.2s ease-out' },
                     keyframes: { modalIn: { '0%': { opacity: '0', transform: 'scale(0.98)' }, '100%': { opacity: '1', transform: 'scale(1)' } } }
                 }
@@ -48,7 +39,6 @@
         ::-webkit-scrollbar-track { background: #0d1117; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #484f58; }
-        /* 讓 Prompt 顯示區域保留換行 */
         .prompt-display { white-space: pre-wrap; word-wrap: break-word; }
         .card-image { transition: transform 0.4s ease; }
     </style>
@@ -69,23 +59,17 @@
                         <p class="text-xs text-pro-subtext">專業靈感資料庫</p>
                     </div>
                 </div>
-
                 <div class="relative w-full md:w-1/3">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-pro-subtext">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-pro-subtext"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" v-model="searchQuery" placeholder="搜尋 Prompt 或標題..." class="w-full bg-[#010409] border border-pro-border rounded-md py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-pro-gold focus:ring-1 focus:ring-pro-gold transition-all text-white placeholder-gray-600">
                 </div>
-
-                <!-- GitHub Manage Button -->
                 <a :href="githubManageUrl" target="_blank" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-md bg-[#21262d] border border-pro-border hover:border-gray-500 hover:text-white text-sm font-medium transition-all text-pro-text">
-                    <i class="fa-brands fa-github"></i>
-                    <span>管理資料庫</span>
+                    <i class="fa-brands fa-github"></i><span>管理資料庫</span>
                 </a>
             </div>
         </header>
 
-        <!-- Category Nav -->
+        <!-- Nav -->
         <nav class="py-8 px-6 max-w-7xl mx-auto w-full">
             <div class="flex flex-wrap gap-3 justify-center md:justify-start">
                 <button @click="currentCategory = 'All'" :class="['px-5 py-2 rounded-md text-sm font-bold transition-all border', currentCategory === 'All' ? 'bg-pro-gold text-[#0d1117] border-pro-gold' : 'bg-transparent border-pro-border text-pro-subtext hover:text-white hover:border-gray-500']">全部顯示</button>
@@ -95,65 +79,42 @@
 
         <!-- Main Content -->
         <main class="flex-grow px-6 pb-10 max-w-7xl mx-auto w-full">
-
-            <!-- Loading -->
-            <div v-if="isLoading" class="text-center py-20">
-                <i class="fa-solid fa-circle-notch fa-spin text-pro-gold text-4xl"></i>
-                <p class="mt-4 text-pro-subtext">正在讀取 data.yaml...</p>
-            </div>
-
-            <!-- Error Message -->
+            <div v-if="isLoading" class="text-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-pro-gold text-4xl"></i><p class="mt-4 text-pro-subtext">正在讀取 data.yaml...</p></div>
             <div v-else-if="error" class="text-center py-20 text-red-400 bg-red-900/10 border border-red-900 rounded-lg max-w-2xl mx-auto p-8">
-                <i class="fa-solid fa-triangle-exclamation text-3xl mb-4"></i>
-                <h3 class="text-xl font-bold mb-2">無法讀取資料庫</h3>
-                <p class="mb-4">{{ error }}</p>
-                <div class="text-left text-sm bg-black/30 p-4 rounded font-mono text-gray-400">
-                    <p>檢查清單：</p>
-                    <ul class="list-disc list-inside mt-2 space-y-1">
-                        <li>確認 GitHub 上有 <strong>data.yaml</strong> 檔案</li>
-                        <li>確認 data.yaml 內容的<strong>縮排</strong>正確 (YAML 很嚴格)</li>
-                        <li>確認 data.yaml 不是空的</li>
-                    </ul>
-                </div>
+                <i class="fa-solid fa-triangle-exclamation text-3xl mb-4"></i><h3 class="text-xl font-bold mb-2">無法讀取資料庫</h3><p>{{ error }}</p>
             </div>
 
-            <!-- Content Grid -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- 卡片列表 -->
                 <div v-for="item in paginatedItems" :key="item.id"
                      class="group bg-pro-card border border-pro-border rounded-lg overflow-hidden hover:border-pro-gold transition-colors duration-300 flex flex-col cursor-pointer shadow-lg"
                      @click="openModal(item)">
 
+                    <!-- 縮圖區：使用 helper function 取得第一張圖 -->
                     <div class="relative aspect-video overflow-hidden bg-black border-b border-pro-border">
-                        <img :src="item.image" :alt="item.title" loading="lazy" class="w-full h-full object-cover card-image group-hover:scale-105">
+                        <img :src="getCoverImage(item)" :alt="item.title" loading="lazy" class="w-full h-full object-cover card-image group-hover:scale-105">
+                        <!-- 如果有多張圖，顯示一個小圖示提示 -->
+                        <div v-if="getImageList(item).length > 1" class="absolute bottom-2 right-2 bg-black/70 backdrop-blur px-1.5 py-0.5 rounded text-[10px] text-white border border-gray-600">
+                            <i class="fa-solid fa-images mr-1"></i> {{ getImageList(item).length }}
+                        </div>
                         <div class="absolute top-2 right-2">
-                            <span class="bg-[#0d1117]/80 backdrop-blur text-xs font-bold text-pro-gold px-2 py-1 rounded border border-pro-border shadow-sm">
-                                {{ item.category }}
-                            </span>
+                            <span class="bg-[#0d1117]/80 backdrop-blur text-xs font-bold text-pro-gold px-2 py-1 rounded border border-pro-border shadow-sm">{{ item.category }}</span>
                         </div>
                     </div>
 
                     <div class="p-5 flex flex-col flex-grow">
                         <h3 class="text-lg font-bold text-white mb-2 group-hover:text-pro-gold transition-colors">{{ item.title }}</h3>
                         <p class="text-sm text-pro-subtext line-clamp-2 mb-4 leading-relaxed">{{ item.description }}</p>
-
                         <div class="mt-auto pt-4 border-t border-pro-border flex items-center justify-between">
-                            <span class="text-xs text-pro-subtext font-mono">#: {{ item.id }}</span>
-                            <button @click.stop="copyPrompt(item.prompt)" class="text-xs bg-[#21262d] hover:bg-pro-gold hover:text-black text-gray-300 px-3 py-1.5 rounded border border-pro-border hover:border-pro-gold transition-all font-bold">
-                                複製
-                            </button>
+                            <span class="text-xs text-pro-subtext font-mono">#:{{ item.id }}</span>
+                            <button @click.stop="copyPrompt(item.prompt)" class="text-xs bg-[#21262d] hover:bg-pro-gold hover:text-black text-gray-300 px-3 py-1.5 rounded border border-pro-border hover:border-pro-gold transition-all font-bold">複製</button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Empty State -->
-            <div v-if="!isLoading && !error && filteredItems.length === 0" class="flex flex-col items-center justify-center py-20 text-pro-subtext">
-                <i class="fa-solid fa-folder-open text-5xl mb-4 opacity-50"></i>
-                <p>找不到相關資料</p>
-            </div>
+            <div v-if="!isLoading && !error && filteredItems.length === 0" class="flex flex-col items-center justify-center py-20 text-pro-subtext"><i class="fa-solid fa-folder-open text-5xl mb-4 opacity-50"></i><p>找不到相關資料</p></div>
         </main>
 
-        <!-- Pagination -->
         <footer class="py-6 border-t border-pro-border bg-[#161b22] mt-auto">
             <div class="flex justify-center items-center gap-4">
                 <button @click="currentPage--" :disabled="currentPage === 1" class="px-4 py-2 rounded bg-[#21262d] border border-pro-border hover:border-gray-500 text-sm disabled:opacity-30 transition">上一頁</button>
@@ -162,23 +123,45 @@
             </div>
         </footer>
 
-        <!-- Detail Modal -->
+        <!-- Modal (詳細視窗) -->
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="closeModal">
             <div class="absolute inset-0 bg-[#0d1117]/90 backdrop-blur-sm transition-opacity"></div>
 
             <div class="relative bg-pro-card border border-pro-border w-full max-w-6xl rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-modal-in">
 
-                <button @click="closeModal" class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition backdrop-blur">
-                    <i class="fa-solid fa-times"></i>
-                </button>
+                <button @click="closeModal" class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition backdrop-blur"><i class="fa-solid fa-times"></i></button>
 
-                <!-- Left: Image -->
-                <div class="w-full md:w-1/2 bg-black flex items-center justify-center border-r border-pro-border relative group cursor-zoom-in" @click="openLightbox">
-                    <img :src="selectedItem.image" class="max-w-full max-h-[50vh] md:max-h-full object-contain">
-                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition">點擊放大</div>
+                <!-- 左側：圖片輪播區 -->
+                <div class="w-full md:w-1/2 bg-black flex items-center justify-center border-r border-pro-border relative group select-none">
+
+                    <!-- 顯示目前的圖片 -->
+                    <img :src="currentGallery[currentImageIndex]" class="max-w-full max-h-[50vh] md:max-h-full object-contain cursor-zoom-in" @click="openLightbox">
+
+                    <!-- 上一張按鈕 -->
+                    <button v-if="currentGallery.length > 1" @click.stop="prevImage" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-pro-gold hover:text-black text-white w-10 h-10 rounded-full flex items-center justify-center transition backdrop-blur border border-white/20">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <!-- 下一張按鈕 -->
+                    <button v-if="currentGallery.length > 1" @click.stop="nextImage" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-pro-gold hover:text-black text-white w-10 h-10 rounded-full flex items-center justify-center transition backdrop-blur border border-white/20">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+
+                    <!-- 底部圓點分頁 -->
+                    <div v-if="currentGallery.length > 1" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                        <span v-for="(img, idx) in currentGallery" :key="idx"
+                              @click.stop="currentImageIndex = idx"
+                              :class="['w-2.5 h-2.5 rounded-full cursor-pointer transition-all shadow-sm border border-black/50',
+                                       currentImageIndex === idx ? 'bg-pro-gold scale-125' : 'bg-white/50 hover:bg-white']">
+                        </span>
+                    </div>
+
+                    <div class="absolute top-4 left-4 bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur border border-white/10 opacity-0 group-hover:opacity-100 transition">
+                        點擊放大圖片
+                    </div>
                 </div>
 
-                <!-- Right: Content -->
+                <!-- 右側：內容區 -->
                 <div class="w-full md:w-1/2 p-8 overflow-y-auto bg-pro-card flex flex-col">
                     <div class="mb-6 border-b border-pro-border pb-6">
                         <div class="flex items-center gap-3 mb-3">
@@ -191,46 +174,42 @@
 
                     <div class="flex-grow mb-6">
                         <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-xs text-pro-gold font-bold uppercase tracking-widest">
-                                <i class="fa-solid fa-terminal mr-1"></i> Prompt 指令
-                            </h4>
-                            <button @click="copyPrompt(selectedItem.prompt)" class="text-xs text-white bg-[#21262d] hover:bg-white hover:text-black border border-pro-border px-3 py-1 rounded transition">
-                                <i class="fa-regular fa-copy"></i>
-                            </button>
+                            <h4 class="text-xs text-pro-gold font-bold uppercase tracking-widest"><i class="fa-solid fa-terminal mr-1"></i> Prompt 指令</h4>
+                            <button @click="copyPrompt(selectedItem.prompt)" class="text-xs text-white bg-[#21262d] hover:bg-white hover:text-black border border-pro-border px-3 py-1 rounded transition"><i class="fa-regular fa-copy"></i></button>
                         </div>
-                        <!-- Prompt 顯示區：支援 YAML 換行 -->
                         <div class="bg-[#0d1117] border border-pro-border rounded-lg p-4 font-mono text-sm text-gray-300 leading-6 prompt-display custom-scroll h-64 overflow-y-auto">
                             {{ selectedItem.prompt }}
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 mt-auto">
-                        <!-- 編輯按鈕：直接去 GitHub 編輯 data.yaml -->
-                        <a :href="githubEditUrl" target="_blank" class="flex items-center justify-center gap-2 bg-pro-green hover:bg-pro-greenHover text-white py-3 rounded-lg font-bold transition shadow-lg hover:shadow-green-900/30">
-                            <i class="fa-regular fa-pen-to-square"></i> 編輯資料
-                        </a>
-                        <!-- 刪除按鈕 -->
-                        <button @click="deleteItem(selectedItem)" class="flex items-center justify-center gap-2 bg-pro-card border border-pro-red text-pro-red hover:bg-pro-red hover:text-white py-3 rounded-lg font-bold transition">
-                            <i class="fa-regular fa-trash-can"></i> 刪除資料
-                        </button>
+                        <a :href="githubEditUrl" target="_blank" class="flex items-center justify-center gap-2 bg-pro-green hover:bg-pro-greenHover text-white py-3 rounded-lg font-bold transition shadow-lg hover:shadow-green-900/30"><i class="fa-regular fa-pen-to-square"></i> 編輯資料</a>
+                        <button @click="deleteItem(selectedItem)" class="flex items-center justify-center gap-2 bg-pro-card border border-pro-red text-pro-red hover:bg-pro-red hover:text-white py-3 rounded-lg font-bold transition"><i class="fa-regular fa-trash-can"></i> 刪除資料</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Lightbox -->
-        <div v-if="showLightbox" class="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center" @click.self="closeLightbox">
-            <button @click="closeLightbox" class="absolute top-6 right-6 text-white/50 hover:text-white text-3xl transition">
-                <i class="fa-solid fa-times"></i>
+        <!-- Fullscreen Lightbox (全螢幕輪播) -->
+        <div v-if="showLightbox" class="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center select-none" @click.self="closeLightbox">
+            <button @click="closeLightbox" class="absolute top-6 right-6 text-white/50 hover:text-white text-3xl transition"><i class="fa-solid fa-times"></i></button>
+
+            <!-- Lightbox 按鈕 -->
+            <button v-if="currentGallery.length > 1" @click.stop="prevImage" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-pro-gold text-5xl transition p-4">
+                <i class="fa-solid fa-angle-left"></i>
             </button>
-            <img :src="selectedItem.image" class="max-w-[95%] max-h-[95vh] object-contain shadow-2xl">
+            <button v-if="currentGallery.length > 1" @click.stop="nextImage" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-pro-gold text-5xl transition p-4">
+                <i class="fa-solid fa-angle-right"></i>
+            </button>
+
+            <img :src="currentGallery[currentImageIndex]" class="max-w-[90%] max-h-[90vh] object-contain shadow-2xl">
+
+            <div class="absolute bottom-6 text-white/50 text-sm font-mono">
+                {{ currentImageIndex + 1 }} / {{ currentGallery.length }}
+            </div>
         </div>
 
-        <!-- Toast -->
-        <div v-if="toastMessage" class="fixed top-6 right-6 bg-pro-gold text-[#0d1117] px-6 py-3 rounded-lg shadow-2xl font-bold transform transition-all z-[70] flex items-center gap-3 animate-bounce">
-            <i class="fa-solid fa-circle-check"></i> {{ toastMessage }}
-        </div>
-
+        <div v-if="toastMessage" class="fixed top-6 right-6 bg-pro-gold text-[#0d1117] px-6 py-3 rounded-lg shadow-2xl font-bold transform transition-all z-[70] flex items-center gap-3 animate-bounce"><i class="fa-solid fa-circle-check"></i> {{ toastMessage }}</div>
     </div>
 
     <script>
@@ -239,9 +218,8 @@
         createApp({
             data() {
                 return {
-                    // ★★★ 核心設定：已幫你設定好 ★★★
                     githubRepo: 'chun0712/Prompts_Lab',
-                    dataFile: 'data.yaml', // 這裡只能填檔名
+                    dataFile: 'data.yaml',
 
                     items: [],
                     isLoading: true,
@@ -253,22 +231,16 @@
                     showModal: false,
                     showLightbox: false,
                     selectedItem: {},
-                    toastMessage: null
+                    toastMessage: null,
+
+                    // ★ 新增：目前輪播到的圖片索引
+                    currentImageIndex: 0
                 }
             },
             computed: {
-                // 產生右上角「管理資料庫」的連結 -> 指向 Repo 首頁
-                githubManageUrl() {
-                    return `https://github.com/${this.githubRepo}`;
-                },
-                // 產生卡片內「編輯」按鈕的連結 -> 指向編輯 data.yaml
-                githubEditUrl() {
-                    return `https://github.com/${this.githubRepo}/edit/main/${this.dataFile}`;
-                },
-                uniqueCategories() {
-                    const categories = new Set(this.items.map(item => item.category));
-                    return Array.from(categories);
-                },
+                githubManageUrl() { return `https://github.com/${this.githubRepo}`; },
+                githubEditUrl() { return `https://github.com/${this.githubRepo}/edit/main/${this.dataFile}`; },
+                uniqueCategories() { return Array.from(new Set(this.items.map(item => item.category))); },
                 filteredItems() {
                     if (!this.items.length) return [];
                     return this.items.filter(item => {
@@ -284,8 +256,11 @@
                     const end = start + this.itemsPerPage;
                     return this.filteredItems.slice(start, end);
                 },
-                totalPages() {
-                    return Math.ceil(this.filteredItems.length / this.itemsPerPage) || 1;
+                totalPages() { return Math.ceil(this.filteredItems.length / this.itemsPerPage) || 1; },
+
+                // ★ 新增：計算屬性，取得當前項目的所有圖片陣列
+                currentGallery() {
+                    return this.getImageList(this.selectedItem);
                 }
             },
             watch: {
@@ -296,31 +271,11 @@
                 async fetchData() {
                     this.isLoading = true;
                     try {
-                        // 讀取 YAML 檔案
                         const response = await fetch(`./${this.dataFile}?t=${new Date().getTime()}`);
-
-                        if (!response.ok) {
-                            throw new Error(`無法讀取檔案 (${response.status})。請確認 GitHub 上是否有 ${this.dataFile}。`);
-                        }
-
+                        if (!response.ok) throw new Error("無法讀取檔案");
                         const textData = await response.text();
-
-                        // 使用 js-yaml 解析
-                        try {
-                            const parsedData = jsyaml.load(textData);
-                            // 檢查是否為陣列
-                            if (Array.isArray(parsedData)) {
-                                this.items = parsedData;
-                            } else {
-                                // 如果是空的或格式不對，給個空陣列避免報錯
-                                this.items = [];
-                                console.warn("YAML 解析成功，但內容不是陣列，可能是空的？");
-                            }
-                            this.error = null;
-                        } catch (e) {
-                            throw new Error("YAML 格式錯誤：請檢查縮排是否正確。\n" + e.message);
-                        }
-
+                        this.items = jsyaml.load(textData) || [];
+                        this.error = null;
                     } catch (err) {
                         console.error(err);
                         this.error = err.message;
@@ -328,46 +283,58 @@
                         this.isLoading = false;
                     }
                 },
-                deleteItem(item) {
-                    const confirmDelete = confirm(`【系統提示】\n請前往 GitHub 手動刪除 ID 為 [ ${item.id} ] 的資料。\n\n點擊「確定」將開啟編輯頁面。`);
-                    if (confirmDelete) {
-                        window.open(this.githubEditUrl, '_blank');
+
+                // ★ 新增：Helper Function，標準化圖片資料 (轉成陣列)
+                getImageList(item) {
+                    // 如果有 images 欄位 (新版)，直接回傳
+                    if (item.images && Array.isArray(item.images)) {
+                        return item.images;
+                    }
+                    // 如果只有 image 欄位 (舊版)，把它包成陣列回傳
+                    if (item.image) {
+                        return [item.image];
+                    }
+                    // 如果都沒有，回傳空陣列
+                    return [];
+                },
+                // ★ 新增：取得封面圖 (第一張)
+                getCoverImage(item) {
+                    const list = this.getImageList(item);
+                    return list.length > 0 ? list[0] : '';
+                },
+                // ★ 新增：下一張
+                nextImage() {
+                    if (this.currentImageIndex < this.currentGallery.length - 1) {
+                        this.currentImageIndex++;
+                    } else {
+                        this.currentImageIndex = 0; // 循環回第一張
                     }
                 },
+                // ★ 新增：上一張
+                prevImage() {
+                    if (this.currentImageIndex > 0) {
+                        this.currentImageIndex--;
+                    } else {
+                        this.currentImageIndex = this.currentGallery.length - 1; // 循環回最後一張
+                    }
+                },
+
+                deleteItem(item) { if (confirm(`【系統提示】\n請前往 GitHub 手動刪除 ID 為 [ ${item.id} ] 的資料。`)) window.open(this.githubEditUrl, '_blank'); },
+
                 openModal(item) {
                     this.selectedItem = item;
+                    this.currentImageIndex = 0; // 重置圖片索引為 0
                     this.showModal = true;
                     document.body.style.overflow = 'hidden';
                 },
-                closeModal() {
-                    this.showModal = false;
-                    document.body.style.overflow = 'auto';
-                },
-                openLightbox() {
-                    this.showLightbox = true;
-                },
-                closeLightbox() {
-                    this.showLightbox = false;
-                },
-                resetSearch() {
-                    this.searchQuery = '';
-                    this.currentCategory = 'All';
-                },
-                copyPrompt(text) {
-                    navigator.clipboard.writeText(text).then(() => {
-                        this.showToast("指令已複製！");
-                    });
-                },
-                showToast(msg) {
-                    this.toastMessage = msg;
-                    setTimeout(() => {
-                        this.toastMessage = null;
-                    }, 2000);
-                }
+                closeModal() { this.showModal = false; document.body.style.overflow = 'auto'; },
+                openLightbox() { this.showLightbox = true; },
+                closeLightbox() { this.showLightbox = false; },
+                resetSearch() { this.searchQuery = ''; this.currentCategory = 'All'; },
+                copyPrompt(text) { navigator.clipboard.writeText(text).then(() => { this.showToast("指令已複製！"); }); },
+                showToast(msg) { this.toastMessage = msg; setTimeout(() => { this.toastMessage = null; }, 2000); }
             },
-            mounted() {
-                this.fetchData();
-            }
+            mounted() { this.fetchData(); }
         }).mount('#app');
     </script>
 </body>

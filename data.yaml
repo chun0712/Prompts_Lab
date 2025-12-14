@@ -1,8 +1,8 @@
 - id: 1
-  title: "手寫筆記風格"
-  category: "筆記設計"
-  image: "./images/note.png"
-  description: "霸手寫筆記..."
+  title: "K線筆記"
+  category: "筆記"
+  image: "./images/1.png"
+  description: ""
   author: ""
   prompt: |
     一張高解析度的照片，拍攝一張方格紙上的手寫研讀筆記，整體風格完美模仿 [參考圖像文件名，例如: image_7.png]。
